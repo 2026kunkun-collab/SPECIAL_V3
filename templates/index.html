@@ -4,121 +4,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logistics Delivery Ledger System</title>
+    <!-- Importing Elegant Fonts for that Epic/Romantic Feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f7f9fc; color: #333; }
+        /* 🌌 MAGICAL THEME VARIABLES */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f3e7e9 0%, #e3eeff 99%, #e3eeff 100%);
+            --card-bg: rgba(255, 255, 255, 0.65);
+            --text-main: #2c3e50;
+            --text-muted: #5a6a7c;
+            --accent-primary: #8e7dbe;
+            --accent-hover: #7562a7;
+            --btn-submit: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            --btn-submit-text: #5a32a3;
+            --border-color: rgba(255, 255, 255, 0.5);
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --table-header: #8e7dbe;
+            --table-header-text: #ffffff;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --glass-blur: blur(12px);
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            --card-bg: rgba(20, 25, 35, 0.65);
+            --text-main: #e0e6ed;
+            --text-muted: #9ba4b5;
+            --accent-primary: #b39cd0;
+            --accent-hover: #c4b0dd;
+            --btn-submit: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            --btn-submit-text: #1a1a24;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(15, 20, 25, 0.7);
+            --table-header: #1e293b;
+            --table-header-text: #e0e6ed;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        body { 
+            font-family: 'Nunito', sans-serif; 
+            margin: 20px; 
+            background: var(--bg-gradient); 
+            color: var(--text-main); 
+            transition: all 0.5s ease;
+            min-height: 100vh;
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+            font-size: 2.2rem;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        /* 🌙 DARK MODE TOGGLE BUTTON */
+        .theme-btn {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, background 0.3s;
+            margin-top: 10px;
+        }
+        .theme-btn:hover { transform: scale(1.05); }
+
         .app-container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
-        /* 1️⃣ TOP PANEL: CAMERA SCANNER & CONFIGS OVERVIEW */
+        /* ✨ GLASSMORPHISM CARDS */
+        .scanner-card, .driver-card, .bottom-row { 
+            background: var(--card-bg); 
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px; 
+            box-shadow: var(--shadow); 
+            transition: all 0.5s ease;
+        }
+        
         .top-row { display: flex; gap: 20px; flex-wrap: wrap; }
-        .scanner-card { flex: 1.2; min-width: 450px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-align: center; }
-        .driver-card { flex: 0.8; min-width: 320px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        
-        /* 2️⃣ BOTTOM PANEL: VERIFICATION LOG GRID */
-        .bottom-row { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .scanner-card { flex: 1.2; min-width: 450px; padding: 25px; text-align: center; }
+        .driver-card { flex: 0.8; min-width: 320px; padding: 25px; }
+        .bottom-row { padding: 25px; }
 
-        .driver-settings-box { background-color: #f1f3f9; border-left: 5px solid #007bff; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
-        .driver-tag { display: inline-flex; align-items: center; background: #007bff; color: white; padding: 5px 10px; border-radius: 20px; margin: 4px; font-size: 13px; font-weight: bold; }
-        .driver-tag span { margin-left: 8px; cursor: pointer; color: #ffc107; }
-        .file-section { background-color: #e9ecef; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
+        h3, h4 { font-family: 'Playfair Display', serif; margin-top: 0; }
+        p { color: var(--text-muted); }
+
+        .driver-settings-box { background-color: rgba(0, 123, 255, 0.05); border-left: 5px solid var(--accent-primary); padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+        .driver-tag { display: inline-flex; align-items: center; background: var(--accent-primary); color: white; padding: 5px 12px; border-radius: 20px; margin: 4px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+        .driver-tag span { margin-left: 8px; cursor: pointer; color: #ffeb3b; }
+        .file-section { background-color: rgba(0,0,0,0.03); padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 14px; border: 1px solid var(--border-color); }
         
-        .table-wrapper { width: 100%; overflow-x: auto; margin-top: 15px; border: 1px solid #dee2e6; border-radius: 6px; }
+        .table-wrapper { width: 100%; overflow-x: auto; margin-top: 15px; border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        th { background-color: #343a40; color: white; padding: 10px; text-align: left; white-space: nowrap; }
-        td { padding: 6px; border-bottom: 1px solid #dee2e6; position: relative; }
+        th { background-color: var(--table-header); color: var(--table-header-text); padding: 12px; text-align: left; white-space: nowrap; font-family: 'Playfair Display', serif; letter-spacing: 0.5px; }
+        td { padding: 8px; border-bottom: 1px solid var(--border-color); position: relative; background: rgba(0,0,0,0.02); }
         
-        /* 🧠 HOVER & TEXT EXPANSION SYSTEM */
-        td input { 
+        /* 🧠 INPUTS & HOVER EXPANSION */
+        td input, .driver-entry-form input, #custom-api-key { 
             width: 100%; 
-            padding: 8px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
+            padding: 10px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
             font-size: 13px; 
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--input-bg);
+            color: var(--text-main);
             box-sizing: border-box;
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
-            transition: all 0.15s ease-in-out;
+            transition: all 0.2s ease-in-out;
         }
-        /* Smooth scale layout amplification on focus/hover */
         td input:hover, td input:focus {
             position: absolute;
             width: 250px;
             max-width: 350px;
             z-index: 99;
             font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            border-color: #007bff;
-            background-color: #fff;
-            transform: scale(1.03);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-color: var(--accent-primary);
+            background-color: var(--card-bg);
+            backdrop-filter: blur(15px);
+            transform: scale(1.05);
         }
 
-        button { cursor: pointer; font-weight: bold; border-radius: 4px; padding: 10px 15px; border: none; transition: background 0.2s; }
-        .add-btn { background-color: #28a745; color: white; margin-top: 10px; }
-        .add-btn:hover { background-color: #218838; }
-        .submit-btn { background-color: #dc3545; color: white; width: 100%; margin-top: 20px; font-size: 16px; padding: 14px; border-radius: 6px; }
-        .submit-btn:hover { background-color: #c82333; }
+        button { cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: bold; border-radius: 8px; padding: 12px 18px; border: none; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
         
-        .camera-btn { background-color: #6f42c1; color: white; padding: 12px; font-size: 16px; width: 100%; border-radius: 6px; }
-        .camera-btn:hover { background-color: #5a32a3; }
-        .camera-btn:disabled { background-color: #bfaedb; cursor: not-allowed; }
+        .add-btn { background-color: rgba(40, 167, 69, 0.8); color: white; margin-top: 10px; backdrop-filter: blur(5px); }
+        .add-btn:hover { background-color: rgba(33, 136, 56, 1); }
         
-        /* WIDER PREVIEW BOX NOW SITTING STRATEGICALLY AT THE TOP */
-        #preview-img { max-width: 100%; max-height: 450px; object-fit: contain; border-radius: 6px; border: 2px dashed #007bff; margin-top: 12px; display: none; }
-        .placeholder-box { height: 160px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; text-align: center; font-weight: bold; margin-top: 12px; background: #fafafa; }
-        .loading-status { color: #6f42c1; font-weight: bold; margin-top: 12px; display: none; }
+        .submit-btn { background: var(--btn-submit); color: var(--btn-submit-text); width: 100%; margin-top: 20px; font-size: 16px; padding: 16px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+        .submit-btn:hover { filter: brightness(1.1); }
+        
+        .camera-btn { background-color: var(--accent-primary); color: white; padding: 14px; font-size: 16px; width: 100%; font-family: 'Playfair Display', serif; letter-spacing: 1px;}
+        .camera-btn:hover { background-color: var(--accent-hover); }
+        .camera-btn:disabled { background-color: #bfaedb; cursor: not-allowed; transform: none; }
+        
+        #preview-img { max-width: 100%; max-height: 450px; object-fit: contain; border-radius: 8px; border: 2px dashed var(--accent-primary); margin-top: 15px; display: none; box-shadow: var(--shadow); }
+        .placeholder-box { height: 160px; border: 2px dashed var(--border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); text-align: center; font-weight: bold; margin-top: 15px; background: rgba(0,0,0,0.02); }
+        .loading-status { color: var(--accent-primary); font-weight: bold; margin-top: 15px; display: none; font-style: italic; }
         .driver-entry-form { display: flex; gap: 8px; margin-top: 10px; }
+        .driver-entry-form button { background: var(--accent-primary); color: white; padding: 10px; }
     </style>
 </head>
 <body>
 
-<h2 style="text-align: center; margin-bottom: 25px; color: #222;">🚚 LOGISTICS MANAGEMENT & AUTOMATION DISPATCH PORTAL</h2>
+<div class="header-container">
+    <h2>🚚 The Epic Delivery Ledger</h2>
+    <p style="margin: 0; font-size: 14px; font-style: italic;">Charting the journey of logistics, one docket at a time.</p>
+    <button id="theme-toggle" class="theme-btn">🌙 Switch to Dark Mode</button>
+</div>
 
 <div class="app-container">
     
-    <!-- 1️⃣ TOP ROW LAYOUT: CAPTURED PICTURE & SETTINGS CONFIGS -->
     <div class="top-row">
-        
         <div class="scanner-card">
-            <h3 style="margin: 0 0 5px 0; text-align: left;">📸 Live AI Scanner Engine</h3>
-            <p style="font-size: 12px; color: #666; text-align: left; margin: 0 0 12px 0;">Snap or upload a photo. The image renders down below in high visibility to help verify your fields.</p>
+            <h3 style="margin: 0 0 5px 0; text-align: left;">📸 The AI Vision Engine</h3>
+            <p style="font-size: 12px; text-align: left; margin: 0 0 15px 0;">Illuminate your document. Snap or upload a photo to extract the logistics data seamlessly.</p>
             
             <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;" onchange="processPaperPhoto(this)">
-            <button type="button" id="scan-btn" class="camera-btn" onclick="document.getElementById('camera-capture').click()">📷 Scan Delivery Voucher Receipt</button>
+            <button type="button" id="scan-btn" class="camera-btn" onclick="document.getElementById('camera-capture').click()">📷 Capture Delivery Voucher</button>
             
-            <div id="loading-badge" class="loading-status">🔄 Gemini AI reading docket coordinates...</div>
-            <div id="placeholder" class="placeholder-box">No photo captured yet - Upload to show a wide snapshot view</div>
+            <div id="loading-badge" class="loading-status">✨ Gemini AI is reading the constellations of your docket...</div>
+            <div id="placeholder" class="placeholder-box">Awaiting a vision... Upload a photo to begin.</div>
             <img id="preview-img" alt="Captured document source file view">
         </div>
 
         <div class="driver-card">
             <div class="driver-settings-box">
-                <h4 style="margin: 0 0 5px 0;">🎯 Active Driver Code Map (Column H)</h4>
-                <p style="font-size: 11px; color: #555; margin: 0 0 10px 0;">Add codes for drivers active right now. Unknown drivers trigger a popup indicator box.</p>
+                <h4 style="margin: 0 0 5px 0;">🎯 Active Driver Code Map</h4>
+                <p style="font-size: 11px; margin: 0 0 10px 0;">Register your active pilots for the day. Unknown drivers will summon a prompt.</p>
                 <div id="driver-tags-container"></div>
                 <div class="driver-entry-form">
-                    <input type="text" id="new-driver-name" placeholder="DRIVER NAME" style="width: 45%; padding: 6px; text-transform: uppercase; border: 1px solid #ccc; border-radius: 4px;">
-                    <input type="number" id="new-driver-code" placeholder="CODE" style="width: 40%; padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
-                    <button type="button" style="background:#007bff; color:white; padding: 6px 10px; font-size:12px; border-radius: 4px;" onclick="addDriverMapping()">Add</button>
+                    <input type="text" id="new-driver-name" placeholder="DRIVER NAME" style="width: 45%; text-transform: uppercase;">
+                    <input type="number" id="new-driver-code" placeholder="CODE" style="width: 40%;">
+                    <button type="button" onclick="addDriverMapping()">Add</button>
                 </div>
             </div>
 
             <div class="file-section">
-                <label for="excel-file">📁 Append to Master Log Workbook:</label>
-                <input type="file" id="excel-file" accept=".xlsx" style="margin-top: 6px; display: block; font-size: 12px;">
+                <label for="excel-file">📁 Append to Master Chronicle (Excel):</label>
+                <input type="file" id="excel-file" accept=".xlsx" style="margin-top: 8px; display: block; font-size: 12px; color: var(--text-main);">
             </div>
 
             <div>
-                <label style="font-size:11px; font-weight:bold; color:#777;">🔑 Runtime API Key Overwrite (Optional)</label>
-                <input type="password" id="custom-api-key" placeholder="AIzaSy..." style="width:100%; padding:6px; font-size:11px; margin-top:4px; border-radius:4px; border:1px solid #ccc; box-sizing: border-box;">
+                <label style="font-size:11px; font-weight:bold; color:var(--text-muted);">🔑 API Key Overwrite (Optional)</label>
+                <input type="password" id="custom-api-key" placeholder="AIzaSy..." style="margin-top:4px;">
             </div>
         </div>
-
     </div>
 
-    <!-- 2️⃣ BOTTOM ROW LAYOUT: COMPREHENSIVE DATA ADJUSTMENT WORK AREA -->
     <div class="bottom-row">
-        <h3 style="margin: 0 0 10px 0;">📋 Interactive Verification Queue</h3>
-        <p style="font-size: 12px; color: #666; margin: 0 0 15px 0;">💡 **Tip:** Hover your mouse pointer over any shortened text box column to pop it out into bold full width view!</p>
+        <h3 style="margin: 0 0 10px 0;">📋 The Verification Matrix</h3>
+        <p style="font-size: 13px; margin: 0 0 15px 0;">💡 <strong>Whisper of wisdom:</strong> Hover your mouse over any text box to reveal its hidden depths in full size.</p>
         
         <div class="table-wrapper">
             <table id="receipt-table">
@@ -139,9 +235,9 @@
                 </thead>
                 <tbody id="entry-container">
                     <tr class="entry-row">
-                        <td><input type="text" class="data-month" placeholder="Jun-26" title="Month Header"></td>
+                        <td><input type="text" class="data-month" placeholder="Jun-26"></td>
                         <td><input type="text" class="data-date" placeholder="02.06.26"></td>
-                        <td><input type="text" class="data-acname" placeholder="Hover to expand text" style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-acname" placeholder="Hover to expand" style="text-transform: uppercase;"></td>
                         <td><input type="text" class="data-dono" placeholder="D/O No" style="text-transform: uppercase;"></td>
                         <td><input type="text" class="data-time" placeholder="Time"></td>
                         <td><input type="number" class="data-nota" placeholder="Code"></td>
@@ -156,13 +252,32 @@
         </div>
 
         <button type="button" class="add-btn" onclick="addManualRow()">➕ Add Blank Row</button>
-        <button type="button" class="submit-btn" onclick="submitAllData()">💾 Export to Alphanumeric Sorted Excel Workbook</button>
+        <button type="button" class="submit-btn" onclick="submitAllData()">💾 Export the Chronicle to Excel</button>
     </div>
 
 </div>
 
 <script>
-    // 🧠 3. CLEAN LAUNCH ENGINE STATE - ALL PRESET DRIVER DEFAULTS WIPED CLEAN
+    // 🌙 DARK MODE ENGINE
+    const themeBtn = document.getElementById('theme-toggle');
+    
+    function switchTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('portalTheme', theme);
+        themeBtn.innerHTML = theme === 'dark' ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode';
+    }
+
+    // Check saved theme on load
+    if(localStorage.getItem('portalTheme') === 'dark') {
+        switchTheme('dark');
+    }
+
+    themeBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        switchTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    // 🧠 ALL PREVIOUS LOGIC IS PRESERVED SAFELY BELOW
     let driverDatabase = {};
 
     function renderDriverTags() {
@@ -171,7 +286,7 @@
         
         let keys = Object.keys(driverDatabase);
         if(keys.length === 0) {
-            container.innerHTML = `<span style="font-size:12px; color:#999; font-style:italic;">No active drivers registered for today yet.</span>`;
+            container.innerHTML = `<span style="font-size:12px; opacity: 0.7; font-style:italic;">No active pilots registered yet.</span>`;
             return;
         }
         
@@ -219,8 +334,8 @@
         const tr = document.createElement('tr');
         tr.className = 'entry-row';
         tr.innerHTML = `
-            <td><input type="text" class="data-month" placeholder="Jun-26"></td>
-            <td><input type="text" class="data-date" placeholder="02.06.26"></td>
+            <td><input type="text" class="data-month"></td>
+            <td><input type="text" class="data-date"></td>
             <td><input type="text" class="data-acname" style="text-transform: uppercase;"></td>
             <td><input type="text" class="data-dono" style="text-transform: uppercase;"></td>
             <td><input type="text" class="data-time"></td>
@@ -252,7 +367,6 @@
         rowElement.querySelector('.data-qty').value = data.qty || "";
         rowElement.querySelector('.data-nota').value = data.nota || "";
         
-        // Match browser Native standard text tooltips
         rowElement.querySelectorAll('input').forEach(input => {
             input.title = input.value;
         });
@@ -300,7 +414,7 @@
                 if (driverDatabase[driverSignature]) {
                     aiData.nota = driverDatabase[driverSignature];
                 } else {
-                    let customCode = prompt(`Detected driver [ ${driverSignature} ] which doesn't have an assigned code today.\nPlease enter the numeric code for this driver:`, "");
+                    let customCode = prompt(`Detected pilot [ ${driverSignature} ] who doesn't have an assigned code today.\nPlease enter the numeric code for this driver:`, "");
                     if (customCode && customCode.trim() !== "") {
                         driverDatabase[driverSignature] = customCode.trim();
                         renderDriverTags();
@@ -311,10 +425,10 @@
                 }
                 addManualRow(aiData);
             } else {
-                alert("Scan Failure: " + result.message);
+                alert("Vision Failure: " + result.message);
             }
         })
-        .catch(err => alert("Server network error: " + err.message))
+        .catch(err => alert("Server networking error: " + err.message))
         .finally(() => {
             scanBtn.disabled = false;
             loadingBadge.style.display = 'none';
@@ -346,7 +460,7 @@
         });
 
         if (entries.length === 0) {
-            alert("The entry validation matrix is empty. Please process a document.");
+            alert("The matrix is empty. Please process a document.");
             return;
         }
 
@@ -373,13 +487,12 @@
             document.body.appendChild(a);
             a.click();
             a.remove();
-            alert("Success! Your sorted 14-column spreadsheet log has downloaded.");
+            alert("Triumph! Your sorted chronicle has been downloaded.");
             location.reload();
         })
         .catch(err => alert("Submission error: " + err.message));
     }
 
-    // Bind base interactions on default load row
     document.querySelectorAll('.entry-row').forEach(row => setupTooltipTriggers(row));
     renderDriverTags();
 </script>
