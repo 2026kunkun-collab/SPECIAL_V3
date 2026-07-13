@@ -6,89 +6,150 @@
     <title>Logistics Delivery Ledger System</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f7f9fc; color: #333; }
-        .app-layout { display: flex; gap: 25px; flex-wrap: wrap; max-width: 1400px; margin: 0 auto; }
-        .left-panel { flex: 1.6; min-width: 450px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .right-panel { flex: 0.4; min-width: 320px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .driver-settings-box { background-color: #f1f3f9; border-left: 5px solid #007bff; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .app-container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* 1️⃣ TOP PANEL: CAMERA SCANNER & CONFIGS OVERVIEW */
+        .top-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .scanner-card { flex: 1.2; min-width: 450px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-align: center; }
+        .driver-card { flex: 0.8; min-width: 320px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        
+        /* 2️⃣ BOTTOM PANEL: VERIFICATION LOG GRID */
+        .bottom-row { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+
+        .driver-settings-box { background-color: #f1f3f9; border-left: 5px solid #007bff; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
         .driver-tag { display: inline-flex; align-items: center; background: #007bff; color: white; padding: 5px 10px; border-radius: 20px; margin: 4px; font-size: 13px; font-weight: bold; }
         .driver-tag span { margin-left: 8px; cursor: pointer; color: #ffc107; }
-        .file-section { background-color: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; }
+        .file-section { background-color: #e9ecef; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
+        
         .table-wrapper { width: 100%; overflow-x: auto; margin-top: 15px; border: 1px solid #dee2e6; border-radius: 6px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-        th { background-color: #343a40; color: white; padding: 10px; white-space: nowrap; }
-        td { padding: 8px; border-bottom: 1px solid #dee2e6; vertical-align: middle; }
-        td input { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        th { background-color: #343a40; color: white; padding: 10px; text-align: left; white-space: nowrap; }
+        td { padding: 6px; border-bottom: 1px solid #dee2e6; position: relative; }
+        
+        /* 🧠 HOVER & TEXT EXPANSION SYSTEM */
+        td input { 
+            width: 100%; 
+            padding: 8px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            font-size: 13px; 
+            box-sizing: border-box;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: all 0.15s ease-in-out;
+        }
+        /* Smooth scale layout amplification on focus/hover */
+        td input:hover, td input:focus {
+            position: absolute;
+            width: 250px;
+            max-width: 350px;
+            z-index: 99;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-color: #007bff;
+            background-color: #fff;
+            transform: scale(1.03);
+        }
+
         button { cursor: pointer; font-weight: bold; border-radius: 4px; padding: 10px 15px; border: none; transition: background 0.2s; }
         .add-btn { background-color: #28a745; color: white; margin-top: 10px; }
         .add-btn:hover { background-color: #218838; }
         .submit-btn { background-color: #dc3545; color: white; width: 100%; margin-top: 20px; font-size: 16px; padding: 14px; border-radius: 6px; }
         .submit-btn:hover { background-color: #c82333; }
-        .camera-btn { background-color: #6f42c1; color: white; padding: 14px; font-size: 16px; width: 100%; border-radius: 6px; }
+        
+        .camera-btn { background-color: #6f42c1; color: white; padding: 12px; font-size: 16px; width: 100%; border-radius: 6px; }
         .camera-btn:hover { background-color: #5a32a3; }
         .camera-btn:disabled { background-color: #bfaedb; cursor: not-allowed; }
-        #preview-img { max-width: 100%; max-height: 400px; border-radius: 6px; border: 2px dashed #ccc; margin-top: 15px; display: none; }
-        .placeholder-box { height: 220px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; text-align: center; font-weight: bold; margin-top: 15px; background: #fafafa; }
-        .loading-status { color: #6f42c1; font-weight: bold; margin-top: 12px; display: none; text-align: center; }
+        
+        /* WIDER PREVIEW BOX NOW SITTING STRATEGICALLY AT THE TOP */
+        #preview-img { max-width: 100%; max-height: 450px; object-fit: contain; border-radius: 6px; border: 2px dashed #007bff; margin-top: 12px; display: none; }
+        .placeholder-box { height: 160px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; text-align: center; font-weight: bold; margin-top: 12px; background: #fafafa; }
+        .loading-status { color: #6f42c1; font-weight: bold; margin-top: 12px; display: none; }
         .driver-entry-form { display: flex; gap: 8px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<h2 style="text-align: center; margin-bottom: 30px; color: #222;">🚚 LOGISTICS MANAGEMENT & AUTOMATION DISPATCH PORTAL</h2>
+<h2 style="text-align: center; margin-bottom: 25px; color: #222;">🚚 LOGISTICS MANAGEMENT & AUTOMATION DISPATCH PORTAL</h2>
 
-<div class="app-layout">
+<div class="app-container">
     
-    <div class="left-panel">
-        <h3>📋 Interactive Verification Queue</h3>
+    <!-- 1️⃣ TOP ROW LAYOUT: CAPTURED PICTURE & SETTINGS CONFIGS -->
+    <div class="top-row">
         
-        <!-- DRIVER CODE MAP MANAGER -->
-        <div class="driver-settings-box">
-            <h4 style="margin: 0 0 10px 0;">🎯 Active Driver Code Map (Column H - Pemandu)</h4>
-            <p style="font-size: 12px; color: #555; margin: 0 0 10px 0;">Define codes for today's active drivers. Unlisted drivers will prompt for manual input upon scanning.</p>
-            <div id="driver-tags-container"></div>
-            <div class="driver-entry-form">
-                <input type="text" id="new-driver-name" placeholder="DRIVER NAME" style="width: 45%; padding: 6px; text-transform: uppercase;">
-                <input type="number" id="new-driver-code" placeholder="CODE (e.g. 5573)" style="width: 40%; padding: 6px;">
-                <button type="button" style="background:#007bff; color:white; padding: 6px 12px; font-size:12px;" onclick="addDriverMapping()">Add Map</button>
+        <div class="scanner-card">
+            <h3 style="margin: 0 0 5px 0; text-align: left;">📸 Live AI Scanner Engine</h3>
+            <p style="font-size: 12px; color: #666; text-align: left; margin: 0 0 12px 0;">Snap or upload a photo. The image renders down below in high visibility to help verify your fields.</p>
+            
+            <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;" onchange="processPaperPhoto(this)">
+            <button type="button" id="scan-btn" class="camera-btn" onclick="document.getElementById('camera-capture').click()">📷 Scan Delivery Voucher Receipt</button>
+            
+            <div id="loading-badge" class="loading-status">🔄 Gemini AI reading docket coordinates...</div>
+            <div id="placeholder" class="placeholder-box">No photo captured yet - Upload to show a wide snapshot view</div>
+            <img id="preview-img" alt="Captured document source file view">
+        </div>
+
+        <div class="driver-card">
+            <div class="driver-settings-box">
+                <h4 style="margin: 0 0 5px 0;">🎯 Active Driver Code Map (Column H)</h4>
+                <p style="font-size: 11px; color: #555; margin: 0 0 10px 0;">Add codes for drivers active right now. Unknown drivers trigger a popup indicator box.</p>
+                <div id="driver-tags-container"></div>
+                <div class="driver-entry-form">
+                    <input type="text" id="new-driver-name" placeholder="DRIVER NAME" style="width: 45%; padding: 6px; text-transform: uppercase; border: 1px solid #ccc; border-radius: 4px;">
+                    <input type="number" id="new-driver-code" placeholder="CODE" style="width: 40%; padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+                    <button type="button" style="background:#007bff; color:white; padding: 6px 10px; font-size:12px; border-radius: 4px;" onclick="addDriverMapping()">Add</button>
+                </div>
+            </div>
+
+            <div class="file-section">
+                <label for="excel-file">📁 Append to Master Log Workbook:</label>
+                <input type="file" id="excel-file" accept=".xlsx" style="margin-top: 6px; display: block; font-size: 12px;">
+            </div>
+
+            <div>
+                <label style="font-size:11px; font-weight:bold; color:#777;">🔑 Runtime API Key Overwrite (Optional)</label>
+                <input type="password" id="custom-api-key" placeholder="AIzaSy..." style="width:100%; padding:6px; font-size:11px; margin-top:4px; border-radius:4px; border:1px solid #ccc; box-sizing: border-box;">
             </div>
         </div>
 
-        <div class="file-section">
-            <label for="excel-file">📁 Append to Existing Master Workbook (Optional):</label>
-            <input type="file" id="excel-file" accept=".xlsx" style="margin-top: 8px; display: block;">
-        </div>
+    </div>
 
-        <!-- 14 COLUMN COMPLIANT GRID INTERFACE -->
+    <!-- 2️⃣ BOTTOM ROW LAYOUT: COMPREHENSIVE DATA ADJUSTMENT WORK AREA -->
+    <div class="bottom-row">
+        <h3 style="margin: 0 0 10px 0;">📋 Interactive Verification Queue</h3>
+        <p style="font-size: 12px; color: #666; margin: 0 0 15px 0;">💡 **Tip:** Hover your mouse pointer over any shortened text box column to pop it out into bold full width view!</p>
+        
         <div class="table-wrapper">
             <table id="receipt-table">
                 <thead>
                     <tr>
-                        <th>Mont</th>
-                        <th>Date</th>
-                        <th>A/C Name</th>
-                        <th>D/O No</th>
-                        <th>Time Dispatched</th>
-                        <th>Pemandu</th>
-                        <th>Lorry No</th>
-                        <th>Driver</th>
-                        <th>BUYER</th>
-                        <th>DELIVERED</th>
-                        <th>Qty (M.cu)</th>
+                        <th style="width: 6.5%;">Mont</th>
+                        <th style="width: 7.5%;">Date</th>
+                        <th style="width: 20%;">A/C Name</th>
+                        <th style="width: 8.5%;">D/O No</th>
+                        <th style="width: 8.5%;">Time Disp.</th>
+                        <th style="width: 7.5%;">Pemandu</th>
+                        <th style="width: 8.5%;">Lorry No</th>
+                        <th style="width: 8.5%;">Driver</th>
+                        <th style="width: 11%;">BUYER</th>
+                        <th style="width: 10%;">DELIVERED</th>
+                        <th style="width: 6.5%;">Qty</th>
                     </tr>
                 </thead>
                 <tbody id="entry-container">
                     <tr class="entry-row">
-                        <td><input type="text" class="data-month" placeholder="Jun-26" required></td>
-                        <td><input type="text" class="data-date" placeholder="02.06.26" required></td>
-                        <td><input type="text" class="data-acname" placeholder="PERFECT READYMIX..." required style="text-transform: uppercase;"></td>
-                        <td><input type="text" class="data-dono" placeholder="PJ006436" required style="text-transform: uppercase;"></td>
-                        <td><input type="text" class="data-time" placeholder="1:07PM" required></td>
-                        <td><input type="number" class="data-nota" placeholder="5573" required></td>
-                        <td><input type="text" class="data-lorry" placeholder="BMX7169" required style="text-transform: uppercase;"></td>
-                        <td><input type="text" class="data-driver" placeholder="ANDI" required style="text-transform: uppercase;"></td>
-                        <td><input type="text" class="data-buyer" placeholder="TSB BUILDER..." required style="text-transform: uppercase;"></td>
-                        <td><input type="text" class="data-delivered" placeholder="PERMAS JAYA" required style="text-transform: uppercase;"></td>
-                        <td><input type="number" step="0.01" class="data-qty" placeholder="8.00" required></td>
+                        <td><input type="text" class="data-month" placeholder="Jun-26" title="Month Header"></td>
+                        <td><input type="text" class="data-date" placeholder="02.06.26"></td>
+                        <td><input type="text" class="data-acname" placeholder="Hover to expand text" style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-dono" placeholder="D/O No" style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-time" placeholder="Time"></td>
+                        <td><input type="number" class="data-nota" placeholder="Code"></td>
+                        <td><input type="text" class="data-lorry" placeholder="Lorry" style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-driver" placeholder="Driver" style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-buyer" placeholder="Buyer" style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-delivered" placeholder="Location" style="text-transform: uppercase;"></td>
+                        <td><input type="number" step="0.01" class="data-qty" placeholder="Qty"></td>
                     </tr>
                 </tbody>
             </table>
@@ -98,38 +159,22 @@
         <button type="button" class="submit-btn" onclick="submitAllData()">💾 Export to Alphanumeric Sorted Excel Workbook</button>
     </div>
 
-    <div class="right-panel">
-        <h3>📸 Live AI Scanner Engine</h3>
-        <p style="font-size: 12px; color: #666;">Snap or upload a picture of a delivery order paper voucher. The system extracts fields, applies business transformations, and links driver parameters dynamically.</p>
-        
-        <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;" onchange="processPaperPhoto(this)">
-        <button type="button" id="scan-btn" class="camera-btn" onclick="document.getElementById('camera-capture').click()">📷 Scan Delivery Voucher Receipt</button>
-        
-        <div id="loading-badge" class="loading-status">🔄 Gemini AI reading docket coordinates...</div>
-        
-        <div id="placeholder" class="placeholder-box">No photo captured yet</div>
-        <img id="preview-img" alt="Captured document source file view">
-        
-        <div style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
-            <label style="font-size:12px; font-weight:bold; color:#777;">🔑 Runtime API Key Overwrite (Optional)</label>
-            <input type="password" id="custom-api-key" placeholder="AIzaSy..." style="width:100%; padding:8px; font-size:12px; margin-top:5px; border-radius:4px; border:1px solid #ccc;">
-        </div>
-    </div>
-
 </div>
 
 <script>
-    // Local memory driver parameters cache
-    let driverDatabase = {
-        "ANDI": "5573",
-        "ZAINAL": "5602",
-        "FANY": "5701",
-        "PANJANG": "5651"
-    };
+    // 🧠 3. CLEAN LAUNCH ENGINE STATE - ALL PRESET DRIVER DEFAULTS WIPED CLEAN
+    let driverDatabase = {};
 
     function renderDriverTags() {
         const container = document.getElementById('driver-tags-container');
         container.innerHTML = "";
+        
+        let keys = Object.keys(driverDatabase);
+        if(keys.length === 0) {
+            container.innerHTML = `<span style="font-size:12px; color:#999; font-style:italic;">No active drivers registered for today yet.</span>`;
+            return;
+        }
+        
         for (const [name, code] of Object.entries(driverDatabase)) {
             const tag = document.createElement('div');
             tag.className = 'driver-tag';
@@ -163,7 +208,6 @@
         const container = document.getElementById('entry-container');
         const rows = container.querySelectorAll('.entry-row');
         
-        // Overwrite first blank row if it's completely untouched
         if (initialValues && rows.length === 1) {
             const firstDo = rows[0].querySelector('.data-dono').value;
             if (!firstDo) {
@@ -175,23 +219,24 @@
         const tr = document.createElement('tr');
         tr.className = 'entry-row';
         tr.innerHTML = `
-            <td><input type="text" class="data-month" placeholder="Jun-26" required></td>
-            <td><input type="text" class="data-date" placeholder="02.06.26" required></td>
-            <td><input type="text" class="data-acname" required style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-dono" required style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-time" required></td>
-            <td><input type="number" class="data-nota" required></td>
-            <td><input type="text" class="data-lorry" required style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-driver" required style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-buyer" required style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-delivered" required style="text-transform: uppercase;"></td>
-            <td><input type="number" step="0.01" class="data-qty" required></td>
+            <td><input type="text" class="data-month" placeholder="Jun-26"></td>
+            <td><input type="text" class="data-date" placeholder="02.06.26"></td>
+            <td><input type="text" class="data-acname" style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-dono" style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-time"></td>
+            <td><input type="number" class="data-nota"></td>
+            <td><input type="text" class="data-lorry" style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-driver" style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-buyer" style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-delivered" style="text-transform: uppercase;"></td>
+            <td><input type="number" step="0.01" class="data-qty"></td>
         `;
         container.appendChild(tr);
         
         if (initialValues) {
             populateRowData(tr, initialValues);
         }
+        setupTooltipTriggers(tr);
     }
 
     function populateRowData(rowElement, data) {
@@ -206,6 +251,18 @@
         rowElement.querySelector('.data-delivered').value = data.delivered || "";
         rowElement.querySelector('.data-qty').value = data.qty || "";
         rowElement.querySelector('.data-nota').value = data.nota || "";
+        
+        // Match browser Native standard text tooltips
+        rowElement.querySelectorAll('input').forEach(input => {
+            input.title = input.value;
+        });
+    }
+
+    function setupTooltipTriggers(rowEl) {
+        rowEl.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => { input.title = input.value; });
+            input.addEventListener('change', () => { input.title = input.value; });
+        });
     }
 
     function processPaperPhoto(input) {
@@ -240,21 +297,19 @@
                 let aiData = result.data;
                 let driverSignature = aiData.driver;
                 
-                // Check if the driver has an assigned code
                 if (driverDatabase[driverSignature]) {
                     aiData.nota = driverDatabase[driverSignature];
                 } else {
-                    // Prompt user for missing code
                     let customCode = prompt(`Detected driver [ ${driverSignature} ] which doesn't have an assigned code today.\nPlease enter the numeric code for this driver:`, "");
                     if (customCode && customCode.trim() !== "") {
                         driverDatabase[driverSignature] = customCode.trim();
                         renderDriverTags();
                         aiData.nota = customCode.trim();
                     } else {
-                        aiData.nota = ""; // Left empty if user cancels
+                        aiData.nota = "";
                     }
                 }
-                addFormRow(aiData);
+                addManualRow(aiData);
             } else {
                 alert("Scan Failure: " + result.message);
             }
@@ -265,11 +320,6 @@
             loadingBadge.style.display = 'none';
             input.value = "";
         });
-    }
-
-    // Proxy function alias for fallback compatibility matching backend callbacks
-    function addFormRow(data) {
-        addManualRow(data);
     }
 
     function submitAllData() {
@@ -329,7 +379,8 @@
         .catch(err => alert("Submission error: " + err.message));
     }
 
-    // Bootstrapping initialization
+    // Bind base interactions on default load row
+    document.querySelectorAll('.entry-row').forEach(row => setupTooltipTriggers(row));
     renderDriverTags();
 </script>
 </body>
