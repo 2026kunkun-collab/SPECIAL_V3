@@ -3,156 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shirt Data Entry with AI Scanner</title>
+    <title>Logistics Delivery Ledger System</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
-        .app-layout { display: flex; gap: 30px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
-        .left-panel { flex: 1.2; min-width: 350px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .right-panel { flex: 0.8; min-width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
-        .file-section { background-color: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .api-key-section { background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 6px; margin-bottom: 20px; text-align: left; }
-        .api-input-container { display: flex; gap: 5px; margin-top: 5px; }
-        .entry-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        input, select, button { padding: 8px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-        input[type="date"], select { width: 100%; }
-        button { cursor: pointer; font-weight: bold; }
-        .add-btn { background-color: #28a745; color: white; border: none; }
-        .submit-btn { background-color: #007bff; color: white; border: none; width: 100%; margin-top: 15px; font-size: 16px; padding: 12px; }
-        .camera-btn { background-color: #6f42c1; color: white; border: none; padding: 12px; font-size: 16px; margin-top: 10px; width: 100%; }
-        .camera-btn:disabled { background-color: #a88cd8; cursor: not-allowed; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; }
-        .note { font-size: 12px; color: #6c757d; margin-top: 5px; }
-        #preview-img { max-width: 100%; max-height: 350px; border-radius: 6px; border: 2px dashed #ccc; margin-top: 15px; display: none; }
-        .placeholder-box { height: 200px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; margin-top: 15px; }
-        .loading-status { color: #6f42c1; font-weight: bold; margin-top: 10px; display: none; }
-        .key-toggle-btn { background-color: #6c757d; color: white; border: none; padding: 8px 12px; font-size: 12px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f7f9fc; color: #333; }
+        .app-layout { display: flex; gap: 25px; flex-wrap: wrap; max-width: 1400px; margin: 0 auto; }
+        .left-panel { flex: 1.6; min-width: 450px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .right-panel { flex: 0.4; min-width: 320px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .driver-settings-box { background-color: #f1f3f9; border-left: 5px solid #007bff; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .driver-tag { display: inline-flex; align-items: center; background: #007bff; color: white; padding: 5px 10px; border-radius: 20px; margin: 4px; font-size: 13px; font-weight: bold; }
+        .driver-tag span { margin-left: 8px; cursor: pointer; color: #ffc107; }
+        .file-section { background-color: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; }
+        .table-wrapper { width: 100%; overflow-x: auto; margin-top: 15px; border: 1px solid #dee2e6; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+        th { background-color: #343a40; color: white; padding: 10px; white-space: nowrap; }
+        td { padding: 8px; border-bottom: 1px solid #dee2e6; vertical-align: middle; }
+        td input { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; box-sizing: border-box; }
+        button { cursor: pointer; font-weight: bold; border-radius: 4px; padding: 10px 15px; border: none; transition: background 0.2s; }
+        .add-btn { background-color: #28a745; color: white; margin-top: 10px; }
+        .add-btn:hover { background-color: #218838; }
+        .submit-btn { background-color: #dc3545; color: white; width: 100%; margin-top: 20px; font-size: 16px; padding: 14px; border-radius: 6px; }
+        .submit-btn:hover { background-color: #c82333; }
+        .camera-btn { background-color: #6f42c1; color: white; padding: 14px; font-size: 16px; width: 100%; border-radius: 6px; }
+        .camera-btn:hover { background-color: #5a32a3; }
+        .camera-btn:disabled { background-color: #bfaedb; cursor: not-allowed; }
+        #preview-img { max-width: 100%; max-height: 400px; border-radius: 6px; border: 2px dashed #ccc; margin-top: 15px; display: none; }
+        .placeholder-box { height: 220px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; text-align: center; font-weight: bold; margin-top: 15px; background: #fafafa; }
+        .loading-status { color: #6f42c1; font-weight: bold; margin-top: 12px; display: none; text-align: center; }
+        .driver-entry-form { display: flex; gap: 8px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<h2 style="text-align: center; color: #333;">👕 Smart Shirt Data Management Platform</h2>
+<h2 style="text-align: center; margin-bottom: 30px; color: #222;">🚚 LOGISTICS MANAGEMENT & AUTOMATION DISPATCH PORTAL</h2>
 
 <div class="app-layout">
     
     <div class="left-panel">
-        <h3>📋 Data Entry Records</h3>
+        <h3>📋 Interactive Verification Queue</h3>
         
-        <!-- 🔑 OPTIONAL USER CUSTOM API KEY INPUT SECTION -->
-        <div class="api-key-section">
-            <label for="custom-api-key" style="color: #856404;">🔑 Custom Gemini API Key (Optional):</label>
-            <div class="api-input-container">
-                <input type="password" id="custom-api-key" placeholder="Paste your AIzaSy... key to use your own limits" style="flex: 1;">
-                <button type="button" class="key-toggle-btn" onclick="toggleKeyVisibility()">Show</button>
+        <!-- DRIVER CODE MAP MANAGER -->
+        <div class="driver-settings-box">
+            <h4 style="margin: 0 0 10px 0;">🎯 Active Driver Code Map (Column H - Pemandu)</h4>
+            <p style="font-size: 12px; color: #555; margin: 0 0 10px 0;">Define codes for today's active drivers. Unlisted drivers will prompt for manual input upon scanning.</p>
+            <div id="driver-tags-container"></div>
+            <div class="driver-entry-form">
+                <input type="text" id="new-driver-name" placeholder="DRIVER NAME" style="width: 45%; padding: 6px; text-transform: uppercase;">
+                <input type="number" id="new-driver-code" placeholder="CODE (e.g. 5573)" style="width: 40%; padding: 6px;">
+                <button type="button" style="background:#007bff; color:white; padding: 6px 12px; font-size:12px;" onclick="addDriverMapping()">Add Map</button>
             </div>
-            <div class="note" style="color: #856404;">Leave blank to default to the system's background key!</div>
         </div>
 
         <div class="file-section">
-            <label for="excel-file">📁 Upload existing Excel file (Optional):</label>
-            <input type="file" id="excel-file" accept=".xlsx">
-            <div class="note">Leave blank to generate a brand new Excel file!</div>
+            <label for="excel-file">📁 Append to Existing Master Workbook (Optional):</label>
+            <input type="file" id="excel-file" accept=".xlsx" style="margin-top: 8px; display: block;">
         </div>
 
-        <div id="entry-container">
-            <div class="entry-row">
-                <input type="date" class="data-date" max="9999-12-31" required>
-                <select class="data-gender">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-                <select class="data-colour">
-                    <option value="Red">Red</option>
-                    <option value="Blue">Blue</option>
-                    <option value="Green">Green</option>
-                    <option value="Yellow">Yellow</option>
-                    <option value="Black">Black</option>
-                    <option value="White">White</option>
-                </select>
-            </div>
+        <!-- 14 COLUMN COMPLIANT GRID INTERFACE -->
+        <div class="table-wrapper">
+            <table id="receipt-table">
+                <thead>
+                    <tr>
+                        <th>Mont</th>
+                        <th>Date</th>
+                        <th>A/C Name</th>
+                        <th>D/O No</th>
+                        <th>Time Dispatched</th>
+                        <th>Pemandu</th>
+                        <th>Lorry No</th>
+                        <th>Driver</th>
+                        <th>BUYER</th>
+                        <th>DELIVERED</th>
+                        <th>Qty (M.cu)</th>
+                    </tr>
+                </thead>
+                <tbody id="entry-container">
+                    <tr class="entry-row">
+                        <td><input type="text" class="data-month" placeholder="Jun-26" required></td>
+                        <td><input type="text" class="data-date" placeholder="02.06.26" required></td>
+                        <td><input type="text" class="data-acname" placeholder="PERFECT READYMIX..." required style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-dono" placeholder="PJ006436" required style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-time" placeholder="1:07PM" required></td>
+                        <td><input type="number" class="data-nota" placeholder="5573" required></td>
+                        <td><input type="text" class="data-lorry" placeholder="BMX7169" required style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-driver" placeholder="ANDI" required style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-buyer" placeholder="TSB BUILDER..." required style="text-transform: uppercase;"></td>
+                        <td><input type="text" class="data-delivered" placeholder="PERMAS JAYA" required style="text-transform: uppercase;"></td>
+                        <td><input type="number" step="0.01" class="data-qty" placeholder="8.00" required></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <button type="button" class="add-btn" onclick="addFormRow()">+ Add More Data Manually</button>
-        <button type="button" class="submit-btn" onclick="submitAllData()">Done & Download Updated Excel</button>
+        <button type="button" class="add-btn" onclick="addManualRow()">➕ Add Blank Row</button>
+        <button type="button" class="submit-btn" onclick="submitAllData()">💾 Export to Alphanumeric Sorted Excel Workbook</button>
     </div>
 
     <div class="right-panel">
-        <h3>📷 AI Paper Form Scanner</h3>
-        <p class="note">Click below to open your device camera, snap a photo of the document paper, and watch the AI extract information instantly!</p>
+        <h3>📸 Live AI Scanner Engine</h3>
+        <p style="font-size: 12px; color: #666;">Snap or upload a picture of a delivery order paper voucher. The system extracts fields, applies business transformations, and links driver parameters dynamically.</p>
         
         <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;" onchange="processPaperPhoto(this)">
-        <button type="button" id="scan-btn" class="camera-btn" onclick="document.getElementById('camera-capture').click()">📸 Scan Paper via Camera</button>
+        <button type="button" id="scan-btn" class="camera-btn" onclick="document.getElementById('camera-capture').click()">📷 Scan Delivery Voucher Receipt</button>
         
-        <div id="loading-badge" class="loading-status">⚡ Gemini AI is reading document... please wait...</div>
+        <div id="loading-badge" class="loading-status">🔄 Gemini AI reading docket coordinates...</div>
         
         <div id="placeholder" class="placeholder-box">No photo captured yet</div>
-        <img id="preview-img" alt="Captured document preview">
+        <img id="preview-img" alt="Captured document source file view">
+        
+        <div style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
+            <label style="font-size:12px; font-weight:bold; color:#777;">🔑 Runtime API Key Overwrite (Optional)</label>
+            <input type="password" id="custom-api-key" placeholder="AIzaSy..." style="width:100%; padding:8px; font-size:12px; margin-top:5px; border-radius:4px; border:1px solid #ccc;">
+        </div>
     </div>
 
 </div>
 
 <script>
-    const rowHTML = `
-        <input type="date" class="data-date" max="9999-12-31" required>
-        <select class="data-gender">
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-        </select>
-        <select class="data-colour">
-            <option value="Red">Red</option>
-            <option value="Blue">Blue</option>
-            <option value="Green">Green</option>
-            <option value="Yellow">Yellow</option>
-            <option value="Black">Black</option>
-            <option value="White">White</option>
-        </select>
-    `;
+    // Local memory driver parameters cache
+    let driverDatabase = {
+        "ANDI": "5573",
+        "ZAINAL": "5602",
+        "FANY": "5701",
+        "PANJANG": "5651"
+    };
 
-    function toggleKeyVisibility() {
-        const keyInput = document.getElementById('custom-api-key');
-        const toggleBtn = document.querySelector('.key-toggle-btn');
-        if (keyInput.type === "password") {
-            keyInput.type = "text";
-            toggleBtn.textContent = "Hide";
-        } else {
-            keyInput.type = "password";
-            toggleBtn.textContent = "Show";
+    function renderDriverTags() {
+        const container = document.getElementById('driver-tags-container');
+        container.innerHTML = "";
+        for (const [name, code] of Object.entries(driverDatabase)) {
+            const tag = document.createElement('div');
+            tag.className = 'driver-tag';
+            tag.innerHTML = `${name}: ${code} <span onclick="removeDriverMapping('${name}')">&times;</span>`;
+            container.appendChild(tag);
         }
     }
 
-    function addFormRow(initialValues = null) {
+    function addDriverMapping() {
+        const nameInput = document.getElementById('new-driver-name');
+        const codeInput = document.getElementById('new-driver-code');
+        const name = nameInput.value.trim().toUpperCase();
+        const code = codeInput.value.trim();
+
+        if (name && code) {
+            driverDatabase[name] = code;
+            nameInput.value = "";
+            codeInput.value = "";
+            renderDriverTags();
+        } else {
+            alert("Please enter both Driver Name and Code.");
+        }
+    }
+
+    function removeDriverMapping(name) {
+        delete driverDatabase[name];
+        renderDriverTags();
+    }
+
+    function addManualRow(initialValues = null) {
         const container = document.getElementById('entry-container');
         const rows = container.querySelectorAll('.entry-row');
         
-        // If we have AI values, check if the single initial row is unedited/blank
+        // Overwrite first blank row if it's completely untouched
         if (initialValues && rows.length === 1) {
-            const firstDate = rows[0].querySelector('.data-date').value;
-            if (!firstDate) {
-                rows[0].querySelector('.data-date').value = initialValues.date || "";
-                rows[0].querySelector('.data-gender').value = initialValues.gender || "Male";
-                rows[0].querySelector('.data-colour').value = initialValues.colour || "Red";
+            const firstDo = rows[0].querySelector('.data-dono').value;
+            if (!firstDo) {
+                populateRowData(rows[0], initialValues);
                 return;
             }
         }
 
-        const newRow = document.createElement('div');
-        newRow.className = 'entry-row';
-        newRow.innerHTML = rowHTML;
-        container.appendChild(newRow);
-
+        const tr = document.createElement('tr');
+        tr.className = 'entry-row';
+        tr.innerHTML = `
+            <td><input type="text" class="data-month" placeholder="Jun-26" required></td>
+            <td><input type="text" class="data-date" placeholder="02.06.26" required></td>
+            <td><input type="text" class="data-acname" required style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-dono" required style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-time" required></td>
+            <td><input type="number" class="data-nota" required></td>
+            <td><input type="text" class="data-lorry" required style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-driver" required style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-buyer" required style="text-transform: uppercase;"></td>
+            <td><input type="text" class="data-delivered" required style="text-transform: uppercase;"></td>
+            <td><input type="number" step="0.01" class="data-qty" required></td>
+        `;
+        container.appendChild(tr);
+        
         if (initialValues) {
-            newRow.querySelector('.data-date').value = initialValues.date || "";
-            newRow.querySelector('.data-gender').value = initialValues.gender || "Male";
-            newRow.querySelector('.data-colour').value = initialValues.colour || "Red";
+            populateRowData(tr, initialValues);
         }
+    }
+
+    function populateRowData(rowElement, data) {
+        rowElement.querySelector('.data-month').value = data.month || "";
+        rowElement.querySelector('.data-date').value = data.date || "";
+        rowElement.querySelector('.data-acname').value = data.ac_name || "";
+        rowElement.querySelector('.data-dono').value = data.do_number || "";
+        rowElement.querySelector('.data-time').value = data.time_dispatched || "";
+        rowElement.querySelector('.data-lorry').value = data.lorry_no || "";
+        rowElement.querySelector('.data-driver').value = data.driver || "";
+        rowElement.querySelector('.data-buyer').value = data.buyer || "";
+        rowElement.querySelector('.data-delivered').value = data.delivered || "";
+        rowElement.querySelector('.data-qty').value = data.qty || "";
+        rowElement.querySelector('.data-nota').value = data.nota || "";
     }
 
     function processPaperPhoto(input) {
         if (!input.files || !input.files[0]) return;
         
         const file = input.files[0];
-        
         const reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('placeholder').style.display = 'none';
@@ -164,12 +223,8 @@
 
         const formData = new FormData();
         formData.append('paper_image', file);
+        formData.append('user_api_key', document.getElementById('custom-api-key').value);
 
-        // Get the custom user API key from input and attach it to the form data sending to python
-        const userApiKey = document.getElementById('custom-api-key').value;
-        formData.append('user_api_key', userApiKey);
-
-        // Turn on UI loading indicator, disable double clicking
         const scanBtn = document.getElementById('scan-btn');
         const loadingBadge = document.getElementById('loading-badge');
         scanBtn.disabled = true;
@@ -182,49 +237,71 @@
         .then(res => res.json())
         .then(result => {
             if (result.status === "success") {
-                addFormRow(result.data);
+                let aiData = result.data;
+                let driverSignature = aiData.driver;
+                
+                // Check if the driver has an assigned code
+                if (driverDatabase[driverSignature]) {
+                    aiData.nota = driverDatabase[driverSignature];
+                } else {
+                    // Prompt user for missing code
+                    let customCode = prompt(`Detected driver [ ${driverSignature} ] which doesn't have an assigned code today.\nPlease enter the numeric code for this driver:`, "");
+                    if (customCode && customCode.trim() !== "") {
+                        driverDatabase[driverSignature] = customCode.trim();
+                        renderDriverTags();
+                        aiData.nota = customCode.trim();
+                    } else {
+                        aiData.nota = ""; // Left empty if user cancels
+                    }
+                }
+                addFormRow(aiData);
             } else {
-                alert("AI Scan error: " + result.message);
+                alert("Scan Failure: " + result.message);
             }
         })
-        .catch(err => alert("Connection error: " + err.message))
+        .catch(err => alert("Server network error: " + err.message))
         .finally(() => {
-            // Clean up state
             scanBtn.disabled = false;
             loadingBadge.style.display = 'none';
-            input.value = ""; // Clear file input so same file can be snapped again
+            input.value = "";
         });
     }
 
+    // Proxy function alias for fallback compatibility matching backend callbacks
+    function addFormRow(data) {
+        addManualRow(data);
+    }
+
     function submitAllData() {
-        const dates = document.querySelectorAll('.data-date');
-        const genders = document.querySelectorAll('.data-gender');
-        const colours = document.querySelectorAll('.data-colour');
-        
+        const rows = document.querySelectorAll('.entry-row');
         let entries = [];
-        for (let i = 0; i < dates.length; i++) {
-            if (dates[i].value) {
-                const year = parseInt(dates[i].value.split('-')[0]);
-                if (year > 3000) {
-                    alert("Please enter a valid year!");
-                    return;
-                }
+
+        rows.forEach(row => {
+            const dono = row.querySelector('.data-dono').value.trim();
+            if (dono) {
                 entries.push({
-                    date: dates[i].value,
-                    gender: genders[i].value,
-                    colour: colours[i].value
+                    month: row.querySelector('.data-month').value.trim(),
+                    date: row.querySelector('.data-date').value.trim(),
+                    ac_name: row.querySelector('.data-acname').value.trim().toUpperCase(),
+                    do_number: dono.toUpperCase(),
+                    time_dispatched: row.querySelector('.data-time').value.trim(),
+                    nota: row.querySelector('.data-nota').value.trim(),
+                    lorry_no: row.querySelector('.data-lorry').value.trim().toUpperCase(),
+                    driver: row.querySelector('.data-driver').value.trim().toUpperCase(),
+                    buyer: row.querySelector('.data-buyer').value.trim().toUpperCase(),
+                    delivered: row.querySelector('.data-delivered').value.trim().toUpperCase(),
+                    qty: parseFloat(row.querySelector('.data-qty').value || 0)
                 });
             }
-        }
+        });
 
         if (entries.length === 0) {
-            alert("Please fill out or scan at least one complete row.");
+            alert("The entry validation matrix is empty. Please process a document.");
             return;
         }
 
         const formData = new FormData();
         const fileInput = document.getElementById('excel-file');
-        
         if (fileInput.files.length > 0) {
             formData.append('excel_file', fileInput.files[0]);
         }
@@ -235,27 +312,25 @@
             body: formData
         })
         .then(response => {
-            if (!response.ok) throw new Error("Failed to compile layout data");
-            const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = "shirt_data.xlsx";
-            if (contentDisposition && contentDisposition.includes('filename=')) {
-                filename = contentDisposition.split('filename=')[1].replaceAll('"', '');
-            }
-            return response.blob().then(blob => ({ blob, filename }));
+            if (!response.ok) throw new Error("Excel compiler generation issue.");
+            return response.blob();
         })
-        .then(({ blob, filename }) => {
+        .then(blob => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = "delivery_data.xlsx";
             document.body.appendChild(a);
             a.click();
             a.remove();
-            alert("Success! Your compiled and sorted Excel spreadsheet has downloaded.");
+            alert("Success! Your sorted 14-column spreadsheet log has downloaded.");
             location.reload();
         })
-        .catch(err => alert("Error: " + err.message));
+        .catch(err => alert("Submission error: " + err.message));
     }
+
+    // Bootstrapping initialization
+    renderDriverTags();
 </script>
 </body>
 </html>
