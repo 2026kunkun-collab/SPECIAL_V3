@@ -320,40 +320,31 @@
     }
 
     function addManualRow(initialValues = null) {
-        const container = document.getElementById('entry-container');
-        const rows = container.querySelectorAll('.entry-row');
-        
-        if (initialValues && rows.length === 1) {
-            const firstDo = rows[0].querySelector('.data-dono').value;
-            if (!firstDo) {
-                populateRowData(rows[0], initialValues);
-                return;
-            }
-        }
-
-        const tr = document.createElement('tr');
-        tr.className = 'entry-row';
-        tr.innerHTML = `
-            <td><input type="text" class="data-month"></td>
-            <td><input type="text" class="data-date"></td>
-            <td><input type="text" class="data-acname" style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-dono" style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-time"></td>
-            <td><input type="number" class="data-nota"></td>
-            <td><input type="text" class="data-lorry" style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-driver" style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-buyer" style="text-transform: uppercase;"></td>
-            <td><input type="text" class="data-delivered" style="text-transform: uppercase;"></td>
-            <td><input type="number" step="0.01" class="data-qty"></td>
-        `;
-        container.appendChild(tr);
-        
-        if (initialValues) {
-            populateRowData(tr, initialValues);
-        }
-        setupTooltipTriggers(tr);
+    const container = document.getElementById('entry-container');
+    const tr = document.createElement('tr');
+    tr.className = 'entry-row';
+    tr.innerHTML = `
+        <td><input type="text" class="data-month"></td>
+        <td><input type="text" class="data-date"></td>
+        <td><input type="text" class="data-acname" style="text-transform: uppercase;"></td>
+        <td><input type="text" class="data-dono" style="text-transform: uppercase;"></td>
+        <td><input type="text" class="data-time"></td>
+        <td><input type="number" class="data-nota"></td>
+        <td><input type="text" class="data-lorry" style="text-transform: uppercase;"></td>
+        <td><input type="text" class="data-driver" style="text-transform: uppercase;"></td>
+        <td><input type="text" class="data-buyer" style="text-transform: uppercase;"></td>
+        <td><input type="text" class="data-delivered" style="text-transform: uppercase;"></td>
+        <td><input type="number" step="0.01" class="data-qty"></td>
+    `;
+    container.appendChild(tr);
+    
+    if (initialValues) {
+        populateRowData(tr, initialValues);
     }
-
+    setupTooltipTriggers(tr);
+    return tr; // Return the row so we can use it
+    }
+    
     function populateRowData(rowElement, data) {
         rowElement.querySelector('.data-month').value = data.month || "";
         rowElement.querySelector('.data-date').value = data.date || "";
@@ -380,60 +371,79 @@
     }
 
     function processPaperPhoto(input) {
-        if (!input.files || !input.files[0]) return;
-        
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('placeholder').style.display = 'none';
-            const img = document.getElementById('preview-img');
-            img.src = e.target.result;
-            img.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
+    if (!input.files || !input.files[0]) return;
+    
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('placeholder').style.display = 'none';
+        const img = document.getElementById('preview-img');
+        img.src = e.target.result;
+        img.style.display = 'block';
+    }
+    reader.readAsDataURL(file);
 
-        const formData = new FormData();
-        formData.append('paper_image', file);
-        formData.append('user_api_key', document.getElementById('custom-api-key').value);
+    const formData = new FormData();
+    formData.append('paper_image', file);
+    formData.append('user_api_key', document.getElementById('custom-api-key').value);
 
-        const scanBtn = document.getElementById('scan-btn');
-        const loadingBadge = document.getElementById('loading-badge');
-        scanBtn.disabled = true;
-        loadingBadge.style.display = 'block';
+    const scanBtn = document.getElementById('scan-btn');
+    const loadingBadge = document.getElementById('loading-badge');
+    scanBtn.disabled = true;
+    loadingBadge.style.display = 'block';
 
-        fetch('/scan-paper', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.status === "success") {
-                let aiData = result.data;
-                let driverSignature = aiData.driver;
-                
-                if (driverDatabase[driverSignature]) {
-                    aiData.nota = driverDatabase[driverSignature];
-                } else {
-                    let customCode = prompt(`Detected pilot [ ${driverSignature} ] who doesn't have an assigned code today.\nPlease enter the numeric code for this driver:`, "");
-                    if (customCode && customCode.trim() !== "") {
-                        driverDatabase[driverSignature] = customCode.trim();
-                        renderDriverTags();
-                        aiData.nota = customCode.trim();
-                    } else {
-                        aiData.nota = "";
-                    }
-                }
-                addManualRow(aiData);
+    fetch('/scan-paper', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.status === "success") {
+            let aiData = result.data;
+            let driverSignature = aiData.driver;
+            
+            // Handle Driver Mapping
+            if (driverDatabase[driverSignature]) {
+                aiData.nota = driverDatabase[driverSignature];
             } else {
-                alert("Vision Failure: " + result.message);
+                let customCode = prompt(`Detected pilot [ ${driverSignature} ] who doesn't have a code. Enter numeric code:`, "");
+                if (customCode && customCode.trim() !== "") {
+                    driverDatabase[driverSignature] = customCode.trim();
+                    renderDriverTags();
+                    aiData.nota = customCode.trim();
+                }
             }
-        })
-        .catch(err => alert("Server networking error: " + err.message))
-        .finally(() => {
-            scanBtn.disabled = false;
-            loadingBadge.style.display = 'none';
-            input.value = "";
-        });
+
+            // --- THE FIX: FIND EMPTY ROW FIRST ---
+            const rows = document.querySelectorAll('.entry-row');
+            let targetRow = null;
+
+            for (let row of rows) {
+                // If D/O field is empty, consider this row "available"
+                if (row.querySelector('.data-dono').value.trim() === "") {
+                    targetRow = row;
+                    break;
+                }
+            }
+
+            // Fill existing empty row, or create a new one if none are empty
+            if (targetRow) {
+                populateRowData(targetRow, aiData);
+            } else {
+                addManualRow(aiData);
+            }
+            // ------------------------------------
+
+        } else {
+            alert("Vision Failure: " + result.message);
+        }
+    })
+    .catch(err => alert("Server networking error: " + err.message))
+    .finally(() => {
+        scanBtn.disabled = false;
+        loadingBadge.style.display = 'none';
+        input.value = "";
+    });
     }
 
     function submitAllData() {
