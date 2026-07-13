@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shirt Data Entry with AI Scanner</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .app-layout { display: flex; gap: 30px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
+        .left-panel { flex: 1.2; min-width: 350px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .right-panel { flex: 0.8; min-width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .file-section { background-color: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .api-key-section { background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 6px; margin-bottom: 20px; text-align: left; }
+        .api-input-container { display: flex; gap: 5px; margin-top: 5px; }
+        .entry-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        input, select, button { padding: 8px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+        input[type="date"], select { width: 100%; }
+        button { cursor: pointer; font-weight: bold; }
+        .add-btn { background-color: #28a745; color: white; border: none; }
+        .submit-btn { background-color: #007bff; color: white; border: none; width: 100%; margin-top: 15px; font-size: 16px; padding: 12px; }
+        .camera-btn { background-color: #6f42c1; color: white; border: none; padding: 12px; font-size: 16px; margin-top: 10px; width: 100%; }
+        .camera-btn:disabled { background-color: #a88cd8; cursor: not-allowed; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        .note { font-size: 12px; color: #6c757d; margin-top: 5px; }
+        #preview-img { max-width: 100%; max-height: 350px; border-radius: 6px; border: 2px dashed #ccc; margin-top: 15px; display: none; }
+        .placeholder-box { height: 200px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; margin-top: 15px; }
+        .loading-status { color: #6f42c1; font-weight: bold; margin-top: 10px; display: none; }
+        .key-toggle-btn { background-color: #6c757d; color: white; border: none; padding: 8px 12px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<h2 style="text-align: center; color: #333;">👕 Smart Shirt Data Management Platform</h2>
+
+<div class="app-layout">
+    
+    <div class="left-panel">
+        <h3>📋 Data Entry Records</h3>
+        
+        <!-- 🔑 OPTIONAL USER CUSTOM API KEY INPUT SECTION -->
+        <div class="api-key-section">
+            <label for="custom-api-key" style="color: #856404;">🔑 Custom Gemini API Key (Optional):</label>
+            <div class="api-input-container">
+                <input type="password" id="custom-api-key" placeholder="Paste your AIzaSy... key to use your own limits" style="flex: 1;">
+                <button type="button" class="key-toggle-btn" onclick="toggleKeyVisibility()">Show</button>
+            </div>
+            <div class="note" style="color: #856404;">Leave blank to default to the system's background key!</div>
+        </div>
+
+        <div class="file-section">
+            <label for="excel-file">📁 Upload existing Excel file (Optional):</label>
+            <input type="file" id="excel-file" accept=".xlsx">
+            <div class="note">Leave blank to generate a brand new Excel file!</div>
+        </div>
+
+        <div id="entry-container">
+            <div class="entry-row">
+                <input type="date" class="data-date" max="9999-12-31" required>
+                <select class="data-gender">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+                <select class="data-colour">
+                    <option value="Red">Red</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Green">Green</option>
+                    <option value="Yellow">Yellow</option>
+                    <option value="Black">Black</option>
+                    <option value="White">White</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="button" class="add-btn" onclick="addFormRow()">+ Add More Data Manually</button>
+        <button type="button" class="submit-btn" onclick="submitAllData()">Done & Download Updated Excel</button>
+    </div>
+
+    <div class="right-panel">
+        <h3>📷 AI Paper Form Scanner</h3>
+        <p class="note">Click below to open your device camera, snap a photo of the document paper, and watch the AI extract information instantly!</p>
+        
+        <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;" onchange="processPaperPhoto(this)">
+        <button type="button" id="scan-btn" class="camera-btn" onclick="document.getElementById('camera-capture').click()">📸 Scan Paper via Camera</button>
+        
+        <div id="loading-badge" class="loading-status">⚡ Gemini AI is reading document... please wait...</div>
+        
+        <div id="placeholder" class="placeholder-box">No photo captured yet</div>
+        <img id="preview-img" alt="Captured document preview">
+    </div>
+
+</div>
+
+<script>
+    const rowHTML = `
+        <input type="date" class="data-date" max="9999-12-31" required>
+        <select class="data-gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
+        <select class="data-colour">
+            <option value="Red">Red</option>
+            <option value="Blue">Blue</option>
+            <option value="Green">Green</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Black">Black</option>
+            <option value="White">White</option>
+        </select>
+    `;
+
+    function toggleKeyVisibility() {
+        const keyInput = document.getElementById('custom-api-key');
+        const toggleBtn = document.querySelector('.key-toggle-btn');
+        if (keyInput.type === "password") {
+            keyInput.type = "text";
+            toggleBtn.textContent = "Hide";
+        } else {
+            keyInput.type = "password";
+            toggleBtn.textContent = "Show";
+        }
+    }
+
+    function addFormRow(initialValues = null) {
+        const container = document.getElementById('entry-container');
+        const rows = container.querySelectorAll('.entry-row');
+        
+        // If we have AI values, check if the single initial row is unedited/blank
+        if (initialValues && rows.length === 1) {
+            const firstDate = rows[0].querySelector('.data-date').value;
+            if (!firstDate) {
+                rows[0].querySelector('.data-date').value = initialValues.date || "";
+                rows[0].querySelector('.data-gender').value = initialValues.gender || "Male";
+                rows[0].querySelector('.data-colour').value = initialValues.colour || "Red";
+                return;
+            }
+        }
+
+        const newRow = document.createElement('div');
+        newRow.className = 'entry-row';
+        newRow.innerHTML = rowHTML;
+        container.appendChild(newRow);
+
+        if (initialValues) {
+            newRow.querySelector('.data-date').value = initialValues.date || "";
+            newRow.querySelector('.data-gender').value = initialValues.gender || "Male";
+            newRow.querySelector('.data-colour').value = initialValues.colour || "Red";
+        }
+    }
+
+    function processPaperPhoto(input) {
+        if (!input.files || !input.files[0]) return;
+        
+        const file = input.files[0];
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('placeholder').style.display = 'none';
+            const img = document.getElementById('preview-img');
+            img.src = e.target.result;
+            img.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+
+        const formData = new FormData();
+        formData.append('paper_image', file);
+
+        // Get the custom user API key from input and attach it to the form data sending to python
+        const userApiKey = document.getElementById('custom-api-key').value;
+        formData.append('user_api_key', userApiKey);
+
+        // Turn on UI loading indicator, disable double clicking
+        const scanBtn = document.getElementById('scan-btn');
+        const loadingBadge = document.getElementById('loading-badge');
+        scanBtn.disabled = true;
+        loadingBadge.style.display = 'block';
+
+        fetch('/scan-paper', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.status === "success") {
+                addFormRow(result.data);
+            } else {
+                alert("AI Scan error: " + result.message);
+            }
+        })
+        .catch(err => alert("Connection error: " + err.message))
+        .finally(() => {
+            // Clean up state
+            scanBtn.disabled = false;
+            loadingBadge.style.display = 'none';
+            input.value = ""; // Clear file input so same file can be snapped again
+        });
+    }
+
+    function submitAllData() {
+        const dates = document.querySelectorAll('.data-date');
+        const genders = document.querySelectorAll('.data-gender');
+        const colours = document.querySelectorAll('.data-colour');
+        
+        let entries = [];
+        for (let i = 0; i < dates.length; i++) {
+            if (dates[i].value) {
+                const year = parseInt(dates[i].value.split('-')[0]);
+                if (year > 3000) {
+                    alert("Please enter a valid year!");
+                    return;
+                }
+                entries.push({
+                    date: dates[i].value,
+                    gender: genders[i].value,
+                    colour: colours[i].value
+                });
+            }
+        }
+
+        if (entries.length === 0) {
+            alert("Please fill out or scan at least one complete row.");
+            return;
+        }
+
+        const formData = new FormData();
+        const fileInput = document.getElementById('excel-file');
+        
+        if (fileInput.files.length > 0) {
+            formData.append('excel_file', fileInput.files[0]);
+        }
+        formData.append('entries', JSON.stringify(entries));
+
+        fetch('/submit', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to compile layout data");
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = "shirt_data.xlsx";
+            if (contentDisposition && contentDisposition.includes('filename=')) {
+                filename = contentDisposition.split('filename=')[1].replaceAll('"', '');
+            }
+            return response.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            alert("Success! Your compiled and sorted Excel spreadsheet has downloaded.");
+            location.reload();
+        })
+        .catch(err => alert("Error: " + err.message));
+    }
+</script>
+</body>
+</html>
